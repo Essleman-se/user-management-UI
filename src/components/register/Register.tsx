@@ -103,9 +103,9 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6 sm:py-12 px-4 sm:px-6 lg:px-8 overflow-x-hidden">
-      <div className="max-w-2xl mx-auto w-full min-w-0">
-        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 max-h-[calc(100vh-4rem)] overflow-y-auto w-full min-w-0">
+    <div className="min-h-screen bg-gray-50 py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-2xl mx-auto w-full">
+        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 w-full">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-6 text-center">User Registration</h1>
 
           {success && (
