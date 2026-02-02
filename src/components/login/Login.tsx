@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import OAuth2Buttons from '../oauth2/OAuth2Buttons';
+import { getApiUrl } from '../../utils/api';
 
 interface LoginFormData {
   email: string;
@@ -13,6 +15,7 @@ interface LoginProps {
 
 const Login = ({ onLoginSuccess }: LoginProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: '',
@@ -20,6 +23,16 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Check for OAuth2 error from location state
+  useEffect(() => {
+    const state = location.state as { oauth2Error?: string } | null;
+    if (state?.oauth2Error) {
+      setError(state.oauth2Error);
+      // Clear the state to prevent showing error on re-render
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -37,7 +50,7 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:8080/api/auth/login', {
+      const response = await fetch(getApiUrl('/api/auth/login'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,16 +106,16 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md mx-auto">
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6 text-center">Login</h1>
+    <div className="min-h-screen bg-gray-50 py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md mx-auto w-full">
+        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-6 text-center">Login</h1>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-              <div className="flex items-center">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
+              <div className="flex items-start sm:items-center">
                 <svg
-                  className="h-5 w-5 text-red-600 mr-2"
+                  className="h-5 w-5 text-red-600 mr-2 shrink-0 mt-0.5 sm:mt-0"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
                   fill="currentColor"
@@ -113,15 +126,15 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
                     clipRule="evenodd"
                   />
                 </svg>
-                <p className="text-red-800 font-medium">Error: {error}</p>
+                <p className="text-sm sm:text-base text-red-800 font-medium wrap-break-word">Error: {error}</p>
               </div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="w-full">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                 Email
               </label>
               <input
@@ -131,15 +144,15 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full max-w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 placeholder="Enter your email"
                 autoComplete="email"
               />
             </div>
 
             {/* Password */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="w-full">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                 Password
               </label>
               <input
@@ -149,7 +162,7 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full max-w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 placeholder="Enter your password"
                 autoComplete="current-password"
               />
@@ -160,12 +173,12 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-indigo-600 text-white py-3 px-4 rounded-md font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                className="w-full bg-indigo-600 text-white py-2.5 sm:py-3 px-4 rounded-md text-sm sm:text-base font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               >
                 {loading ? (
                   <span className="flex items-center justify-center">
                     <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      className="animate-spin -ml-1 mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 text-white"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -184,7 +197,7 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    Logging in...
+                    <span className="text-xs sm:text-sm">Logging in...</span>
                   </span>
                 ) : (
                   'Login'
@@ -192,6 +205,11 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
               </button>
             </div>
           </form>
+
+          {/* OAuth2 Buttons */}
+          <div className="mt-6">
+            <OAuth2Buttons className="" />
+          </div>
 
           {/* Link to Register */}
           <div className="mt-6 text-center">

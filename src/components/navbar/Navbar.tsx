@@ -25,10 +25,10 @@ const Navbar = ({ isAuthenticated = false, onLogout }: NavbarProps) => {
   return (
     <nav className="bg-blue-500 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-10">
           {/* Logo/Brand */}
           <div className="shrink-0 flex items-center">
-            <h1 className="text-2xl font-bold text-indigo-600">Mic-User</h1>
+            <h1 className="text-xl font-bold text-indigo-600">Mic-User</h1>
           </div>
 
           {/* Desktop Navigation */}

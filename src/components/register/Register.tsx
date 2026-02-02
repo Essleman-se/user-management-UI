@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
+import { getApiUrl } from '../../utils/api';
 
 interface RegisterFormData {
   name: string;
@@ -68,7 +69,7 @@ const Register = () => {
     setSuccess(false);
 
     try {
-      const response = await fetch('http://localhost:8080/api/auth/register', {
+      const response = await fetch(getApiUrl('/api/auth/register'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { getApiUrl } from '../../utils/api';
 
 interface ApiResponse {
   message?: string;
@@ -9,7 +10,7 @@ interface MainProps {
   isAuthenticated?: boolean;
 }
 
-const Main = ({ isAuthenticated = false }: MainProps) => {
+const Main = ({ isAuthenticated: _isAuthenticated = false }: MainProps) => {
   const [message, setMessage] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +21,7 @@ const Main = ({ isAuthenticated = false }: MainProps) => {
         setLoading(true);
         setError(null);
         
-        const response = await fetch('http://localhost:8080/api/users/hello');
+        const response = await fetch(getApiUrl('/api/users/hello'));
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);

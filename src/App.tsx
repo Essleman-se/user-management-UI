@@ -6,6 +6,7 @@ import Main from './components/main/Main'
 import Register from './components/register/Register'
 import Login from './components/login/Login'
 import UserAccount from './components/user-account/UserAccount'
+import OAuth2Callback from './components/oauth2/OAuth2Callback'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -29,6 +30,10 @@ function App() {
         <Route path="/" element={<Main isAuthenticated={isAuthenticated} />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login onLoginSuccess={handleLogin} />} />
+        <Route 
+          path="/oauth2/callback" 
+          element={<OAuth2Callback onLoginSuccess={handleLogin} />} 
+        />
         <Route 
           path="/user-account" 
           element={

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { getApiUrl } from '../../utils/api';
 
 interface UserCountProps {
   isAuthenticated: boolean;
@@ -29,8 +30,8 @@ const UserCount = ({ isAuthenticated, compact = false }: UserCountProps) => {
         }
 
         // Try GET with query parameter first
-        // Use relative URL to work with Vite proxy (if configured)
-        const apiUrl = `/api/users/by-email?email=${encodeURIComponent(email)}`;
+        // Use getApiUrl to handle both dev and production environments
+        const apiUrl = `${getApiUrl('/api/users/by-email')}?email=${encodeURIComponent(email)}`;
         console.log('Fetching user info from:', apiUrl);
 
         const headers: HeadersInit = {
@@ -62,7 +63,7 @@ const UserCount = ({ isAuthenticated, compact = false }: UserCountProps) => {
             postHeaders['Authorization'] = `Bearer ${token}`;
           }
 
-          response = await fetch('/api/users/by-email', {
+          response = await fetch(getApiUrl('/api/users/by-email'), {
             method: 'POST',
             headers: postHeaders,
             body: JSON.stringify({ email: email }),
@@ -92,7 +93,39 @@ const UserCount = ({ isAuthenticated, compact = false }: UserCountProps) => {
 
         if (!response.ok) {
           if (response.status === 404) {
-            throw new Error('User not found');
+            // User not found - might be a new OAuth2 user
+            // Try to get user info from token-based endpoint instead
+            if (token) {
+              console.log('User not found by email, trying token-based endpoint...');
+              try {
+                const meResponse = await fetch(getApiUrl('/api/users/me'), {
+                  method: 'GET',
+                  headers: {
+                    'Accept': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                  },
+                });
+
+                if (meResponse.ok) {
+                  const contentType = meResponse.headers.get('content-type');
+                  if (contentType && contentType.includes('application/json')) {
+                    const meData = await meResponse.json();
+                    setUserInfo(meData);
+                    return; // Successfully got user info from /me endpoint
+                  }
+                }
+              } catch (meErr) {
+                console.warn('Could not fetch from /api/users/me:', meErr);
+              }
+            }
+            
+            // If /me endpoint also fails, create a basic user info from email
+            console.log('Creating basic user info from email for new OAuth2 user');
+            setUserInfo({
+              email: email,
+              name: email.split('@')[0], // Use email prefix as name
+            });
+            return; // Don't throw error, use basic info
           }
           let errorMessage = `HTTP error! status: ${response.status}`;
           try {
@@ -128,19 +161,20 @@ const UserCount = ({ isAuthenticated, compact = false }: UserCountProps) => {
     if (loading) {
       return (
         <div className="flex items-center">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
         </div>
       );
     }
 
-    if (error || !userInfo) {
-      return null;
-    }
-
-    const displayName = (userInfo.name as string) || (userInfo.username as string) || 'User';
+    // For compact view, show avatar even if there's an error or no userInfo
+    // Use email from localStorage as fallback
+    const email = localStorage.getItem('userEmail') || '';
+    const displayName = userInfo 
+      ? ((userInfo.name as string) || (userInfo.username as string) || email.split('@')[0] || 'User')
+      : (email.split('@')[0] || 'User');
 
     return (
-      <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-semibold text-sm">
+      <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center text-indigo-600 font-semibold text-sm shrink-0">
         {displayName.charAt(0).toUpperCase()}
       </div>
     );
