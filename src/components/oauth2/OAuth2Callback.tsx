@@ -47,31 +47,40 @@ const OAuth2Callback = ({ onLoginSuccess }: OAuth2CallbackProps) => {
               
               if (contentType.includes('application/json')) {
                 const data = await response.json();
-                if (data.token) {
+                console.log('Backend success page response:', data);
+                if (data.token && data.token.trim() !== '') {
                   // Get frontend origin from sessionStorage (stored before OAuth2 redirect)
                   // Fallback to current origin if not found (shouldn't happen in normal flow)
                   const frontendOrigin = sessionStorage.getItem('oauth2_frontend_origin') || window.location.origin;
                   const basePath = import.meta.env.BASE_URL || '/user-management-UI';
                   const callbackPath = basePath.endsWith('/') ? 'oauth2/callback' : '/oauth2/callback';
                   const frontendCallbackUrl = `${frontendOrigin}${basePath}${callbackPath}?token=${encodeURIComponent(data.token)}${data.email ? `&email=${encodeURIComponent(data.email)}` : ''}`;
-                  console.log('Redirecting to frontend callback:', frontendCallbackUrl);
+                  console.log('Redirecting to frontend callback with token:', frontendCallbackUrl);
                   window.location.href = frontendCallbackUrl;
                   return;
+                } else {
+                  console.error('Backend returned success page but token is missing or empty:', data);
+                  throw new Error('OAuth2 authentication succeeded but token is missing. Please try again.');
                 }
               } else {
                 // If HTML, try to extract token from URL params or page content
                 const urlParams = new URLSearchParams(window.location.search);
                 const token = urlParams.get('token');
-                if (token) {
+                console.log('Extracted token from URL params:', token ? 'Token found' : 'Token not found');
+                if (token && token.trim() !== '') {
                   const email = urlParams.get('email');
                   // Get frontend origin from sessionStorage
                   const frontendOrigin = sessionStorage.getItem('oauth2_frontend_origin') || window.location.origin;
                   const basePath = import.meta.env.BASE_URL || '/user-management-UI';
                   const callbackPath = basePath.endsWith('/') ? 'oauth2/callback' : '/oauth2/callback';
                   const frontendCallbackUrl = `${frontendOrigin}${basePath}${callbackPath}?token=${encodeURIComponent(token)}${email ? `&email=${encodeURIComponent(email)}` : ''}`;
-                  console.log('Redirecting to frontend callback:', frontendCallbackUrl);
+                  console.log('Redirecting to frontend callback with token from URL:', frontendCallbackUrl);
                   window.location.href = frontendCallbackUrl;
                   return;
+                } else if (urlParams.has('token')) {
+                  // Token parameter exists but is empty
+                  console.error('Token parameter in URL but value is empty');
+                  throw new Error('OAuth2 token parameter is present but empty. Please try logging in again.');
                 }
               }
             }
@@ -133,7 +142,8 @@ const OAuth2Callback = ({ onLoginSuccess }: OAuth2CallbackProps) => {
         }
 
         // If token is directly in URL (from backend success redirect)
-        if (tokenFromUrl) {
+        // Check if token exists and is not empty
+        if (tokenFromUrl && tokenFromUrl.trim() !== '') {
           console.log('Token found in URL, email from URL:', emailFromUrl);
           
           // Store token temporarily (don't store in localStorage yet)
@@ -149,6 +159,10 @@ const OAuth2Callback = ({ onLoginSuccess }: OAuth2CallbackProps) => {
           setShowEmailInput(true);
           setLoading(false);
           return;
+        } else if (tokenFromUrl !== null) {
+          // Token parameter exists but is empty - this is an error
+          console.error('Token parameter found in URL but is empty');
+          throw new Error('OAuth2 token is missing or empty. Please try logging in again.');
         }
 
         // If code is present, exchange it for token via backend
@@ -193,8 +207,11 @@ const OAuth2Callback = ({ onLoginSuccess }: OAuth2CallbackProps) => {
           console.log('OAuth2 login successful:', data);
 
           // Store token temporarily (don't store in localStorage yet)
-          if (data.token) {
+          if (data.token && data.token.trim() !== '') {
             setToken(data.token);
+          } else {
+            console.error('Token received from callback endpoint is missing or empty:', data);
+            throw new Error('OAuth2 authentication succeeded but token is missing. Please try again.');
           }
 
           // Get email from OAuth2 response
@@ -212,6 +229,11 @@ const OAuth2Callback = ({ onLoginSuccess }: OAuth2CallbackProps) => {
 
 
         // No code or token found, and success endpoint didn't return token
+        // Check if we have a token parameter but it's empty (common issue)
+        if (searchParams.has('token') && !tokenFromUrl) {
+          throw new Error('OAuth2 token parameter is present in URL but is empty. The backend may not have provided a token. Please check your backend OAuth2 configuration and try again.');
+        }
+        
         // Check if we have a token in state (from previous attempts)
         if (token) {
           console.log('Token found in state, showing email confirmation');
@@ -220,7 +242,7 @@ const OAuth2Callback = ({ onLoginSuccess }: OAuth2CallbackProps) => {
           return;
         }
         
-        throw new Error('Authorization code or token not found. OAuth2 authentication may have failed.');
+        throw new Error('Authorization code or token not found. OAuth2 authentication may have failed. Please try logging in again.');
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'OAuth2 authentication failed';
         setError(errorMessage);
