@@ -21,7 +21,9 @@ export interface OAuth2Config {
  */
 export const getOAuth2AuthorizationUrl = async (provider: OAuth2Provider): Promise<string> => {
   try {
-    const redirectUri = `${window.location.origin}/oauth2/callback`;
+    const basePath = import.meta.env.BASE_URL || '/user-management-UI';
+    const callbackPath = basePath.endsWith('/') ? 'oauth2/callback' : '/oauth2/callback';
+    const redirectUri = `${window.location.origin}${basePath}${callbackPath}`;
     const response = await fetch(`${getApiUrl(`/api/oauth2/authorization-url/${provider}`)}?redirect_uri=${encodeURIComponent(redirectUri)}`, {
       method: 'GET',
       headers: {
@@ -77,9 +79,10 @@ export const getOAuth2AuthorizationUrl = async (provider: OAuth2Provider): Promi
  */
 export const initiateOAuth2Login = async (provider: OAuth2Provider): Promise<void> => {
   try {
-    // Store the provider in sessionStorage for callback handling
+    // Store the provider and frontend origin in sessionStorage for callback handling
     sessionStorage.setItem('oauth2_provider', provider);
     sessionStorage.setItem('oauth2_redirect_after_login', window.location.pathname);
+    sessionStorage.setItem('oauth2_frontend_origin', window.location.origin);
     
     // Get authorization URL from backend
     const authUrl = await getOAuth2AuthorizationUrl(provider);
@@ -96,6 +99,7 @@ export const initiateOAuth2Login = async (provider: OAuth2Provider): Promise<voi
     console.error('Error initiating OAuth2 login:', error);
     sessionStorage.removeItem('oauth2_provider');
     sessionStorage.removeItem('oauth2_redirect_after_login');
+    sessionStorage.removeItem('oauth2_frontend_origin');
     throw error;
   }
 };
@@ -124,7 +128,12 @@ export const handleOAuth2Callback = async (
         code,
         state,
         provider,
-        redirect_uri: `${window.location.origin}/oauth2/callback`,
+        redirect_uri: (() => {
+          const frontendOrigin = sessionStorage.getItem('oauth2_frontend_origin') || window.location.origin;
+          const basePath = import.meta.env.BASE_URL || '/user-management-UI';
+          const callbackPath = basePath.endsWith('/') ? 'oauth2/callback' : '/oauth2/callback';
+          return `${frontendOrigin}${basePath}${callbackPath}`;
+        })(),
       }),
     });
 
@@ -140,11 +149,13 @@ export const handleOAuth2Callback = async (
     // Clear session storage
     sessionStorage.removeItem('oauth2_provider');
     sessionStorage.removeItem('oauth2_redirect_after_login');
+    sessionStorage.removeItem('oauth2_frontend_origin');
     
     return data;
   } catch (error) {
     sessionStorage.removeItem('oauth2_provider');
     sessionStorage.removeItem('oauth2_redirect_after_login');
+    sessionStorage.removeItem('oauth2_frontend_origin');
     throw error;
   }
 };

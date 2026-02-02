@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getApiUrl } from '../../utils/api';
+import { getApiUrl, getApiBaseUrl } from '../../utils/api';
 
 interface OAuth2CallbackProps {
   onLoginSuccess?: () => void;
@@ -22,13 +22,19 @@ const OAuth2Callback = ({ onLoginSuccess }: OAuth2CallbackProps) => {
         setLoading(true);
         setError(null);
 
-        // Check if we're on the backend success page (window.location.href contains backend URL)
-        // If so, extract token from the page or redirect to frontend callback
-        if (window.location.href.includes('localhost:8080/api/oauth2/success') || window.location.href.includes('localhost:8080/oauth2/success')) {
+        // Check if we're on the backend success page
+        // Get backend URL dynamically (works in both dev and production)
+        const backendBaseUrl = getApiBaseUrl() || 'http://localhost:8080';
+        const currentUrl = window.location.href;
+        const isOnBackendSuccessPage = currentUrl.includes(`${backendBaseUrl}/api/oauth2/success`) || 
+                                       currentUrl.includes(`${backendBaseUrl}/oauth2/success`) ||
+                                       (backendBaseUrl.includes('localhost:8080') && currentUrl.includes('localhost:8080'));
+        
+        if (isOnBackendSuccessPage) {
           // We're on the backend success page - try to get token from the page
           // Backend might be showing token in HTML or JSON
           try {
-            const response = await fetch(window.location.href, {
+            const response = await fetch(currentUrl, {
               method: 'GET',
               headers: {
                 'Accept': 'application/json',
@@ -42,8 +48,13 @@ const OAuth2Callback = ({ onLoginSuccess }: OAuth2CallbackProps) => {
               if (contentType.includes('application/json')) {
                 const data = await response.json();
                 if (data.token) {
-                  // Redirect to frontend callback with token
-                  const frontendCallbackUrl = `${window.location.origin.replace(':8080', ':5173')}/oauth2/callback?token=${encodeURIComponent(data.token)}${data.email ? `&email=${encodeURIComponent(data.email)}` : ''}`;
+                  // Get frontend origin from sessionStorage (stored before OAuth2 redirect)
+                  // Fallback to current origin if not found (shouldn't happen in normal flow)
+                  const frontendOrigin = sessionStorage.getItem('oauth2_frontend_origin') || window.location.origin;
+                  const basePath = import.meta.env.BASE_URL || '/user-management-UI';
+                  const callbackPath = basePath.endsWith('/') ? 'oauth2/callback' : '/oauth2/callback';
+                  const frontendCallbackUrl = `${frontendOrigin}${basePath}${callbackPath}?token=${encodeURIComponent(data.token)}${data.email ? `&email=${encodeURIComponent(data.email)}` : ''}`;
+                  console.log('Redirecting to frontend callback:', frontendCallbackUrl);
                   window.location.href = frontendCallbackUrl;
                   return;
                 }
@@ -53,7 +64,12 @@ const OAuth2Callback = ({ onLoginSuccess }: OAuth2CallbackProps) => {
                 const token = urlParams.get('token');
                 if (token) {
                   const email = urlParams.get('email');
-                  const frontendCallbackUrl = `${window.location.origin.replace(':8080', ':5173')}/oauth2/callback?token=${encodeURIComponent(token)}${email ? `&email=${encodeURIComponent(email)}` : ''}`;
+                  // Get frontend origin from sessionStorage
+                  const frontendOrigin = sessionStorage.getItem('oauth2_frontend_origin') || window.location.origin;
+                  const basePath = import.meta.env.BASE_URL || '/user-management-UI';
+                  const callbackPath = basePath.endsWith('/') ? 'oauth2/callback' : '/oauth2/callback';
+                  const frontendCallbackUrl = `${frontendOrigin}${basePath}${callbackPath}?token=${encodeURIComponent(token)}${email ? `&email=${encodeURIComponent(email)}` : ''}`;
+                  console.log('Redirecting to frontend callback:', frontendCallbackUrl);
                   window.location.href = frontendCallbackUrl;
                   return;
                 }
@@ -213,6 +229,7 @@ const OAuth2Callback = ({ onLoginSuccess }: OAuth2CallbackProps) => {
         // Clear session storage
         sessionStorage.removeItem('oauth2_redirect_after_login');
         sessionStorage.removeItem('oauth2_provider');
+        sessionStorage.removeItem('oauth2_frontend_origin');
         
         // Redirect to login page after a short delay
         setTimeout(() => {
