@@ -21,6 +21,11 @@ const OAuth2Callback = ({ onLoginSuccess }: OAuth2CallbackProps) => {
       try {
         setLoading(true);
         setError(null);
+        
+        // Log current URL for debugging
+        console.log('OAuth2Callback: Current URL:', window.location.href);
+        console.log('OAuth2Callback: Base path:', import.meta.env.BASE_URL);
+        console.log('OAuth2Callback: Search params:', Object.fromEntries(searchParams.entries()));
 
         // Check if we're on the backend success page
         // Get backend URL dynamically (works in both dev and production)
