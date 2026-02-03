@@ -173,7 +173,11 @@ const OAuth2Callback = ({ onLoginSuccess }: OAuth2CallbackProps) => {
         // If code is present, exchange it for token via backend
         if (code) {
           const provider = sessionStorage.getItem('oauth2_provider') || 'google';
-          const redirectUri = `${window.location.origin}/oauth2/callback`;
+          // Construct redirect URI with base path (matches what was sent to backend)
+          const basePath = import.meta.env.BASE_URL || '/user-management-UI';
+          const callbackPath = basePath.endsWith('/') ? 'oauth2/callback' : '/oauth2/callback';
+          const redirectUri = `${window.location.origin}${basePath}${callbackPath}`;
+          console.log('OAuth2Callback: Exchanging code for token. Redirect URI:', redirectUri);
 
           // Exchange code for token using backend callback endpoint
           const response = await fetch(getApiUrl('/api/oauth2/callback'), {
