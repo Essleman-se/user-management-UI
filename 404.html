@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting...</title>
+    <script>
+      // GitHub Pages 404.html workaround for SPA routing
+      // When GitHub Pages can't find a file (like /oauth2/callback), it serves this 404.html
+      // We redirect to index.html while preserving the query string and hash
+      // The React app will then handle the routing based on query params
+      
+      const basePath = '/user-management-UI';
+      const search = window.location.search;
+      const hash = window.location.hash;
+      
+      // Redirect to index.html with query string and hash preserved
+      // The React app's OAuth2RedirectHandler will detect OAuth2 params and route correctly
+      window.location.replace(basePath + '/index.html' + search + hash);
+    </script>
+  </head>
+  <body>
+    <p>Redirecting...</p>
+  </body>
+</html>
+
