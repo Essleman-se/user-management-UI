@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import './App.css'
 import Navbar from './components/navbar/Navbar'
@@ -8,24 +8,30 @@ import Login from './components/login/Login'
 import UserAccount from './components/user-account/UserAccount'
 import OAuth2Callback from './components/oauth2/OAuth2Callback'
 
-// Component to handle GitHub Pages 404 redirects
+// Component to handle GitHub Pages 404 redirects from index.html
 function OAuth2RedirectHandler() {
   const location = useLocation();
   const navigate = useNavigate();
+  const hasRedirectedRef = useRef(false);
   
   useEffect(() => {
-    // Check if we're on index.html (from 404.html redirect) or root path with OAuth2 params
+    // Only redirect once to prevent loops
+    if (hasRedirectedRef.current) return;
+    
+    // Check if we're on index.html (from 404.html redirect) with OAuth2 params
     const pathname = location.pathname;
     const hasOAuthParams = location.search.includes('token=') || location.search.includes('code=');
-    const isIndexPage = pathname === '/' || pathname === '/index.html' || pathname.endsWith('/index.html') || pathname.endsWith('index.html');
+    const isIndexPage = pathname === '/index.html';
     
     if (isIndexPage && hasOAuthParams) {
       // Redirect to /oauth2/callback with the query params preserved
       console.log('OAuth2RedirectHandler: Detected index.html with OAuth2 params, redirecting to /oauth2/callback');
       console.log('OAuth2RedirectHandler: Search params:', location.search);
+      hasRedirectedRef.current = true;
       navigate('/oauth2/callback' + location.search + location.hash, { replace: true });
     } else if (isIndexPage && !hasOAuthParams) {
       // If on index.html without OAuth params, redirect to home
+      hasRedirectedRef.current = true;
       navigate('/', { replace: true });
     }
   }, [location, navigate]);
@@ -59,7 +65,6 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar isAuthenticated={isAuthenticated} onLogout={handleLogout} />
-      <OAuth2RedirectHandler />
       <Routes>
         <Route path="/" element={<Main isAuthenticated={isAuthenticated} />} />
         <Route path="/register" element={<Register />} />

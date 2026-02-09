@@ -22,21 +22,6 @@ const OAuth2Callback = ({ onLoginSuccess }: OAuth2CallbackProps) => {
         setLoading(true);
         setError(null);
         
-        // Check if we came from a GitHub Pages 404 redirect
-        // If the pathname is /index.html or / but we have OAuth2 params, fix the route
-        const currentPath = window.location.pathname;
-        const basePath = import.meta.env.BASE_URL || '/user-management-UI';
-        const isIndexPage = currentPath === basePath + '/index.html' || currentPath === basePath + '/';
-        const hasOAuthParams = searchParams.has('token') || searchParams.has('code');
-        
-        if (isIndexPage && hasOAuthParams) {
-          // We're on index.html but should be on /oauth2/callback
-          // Update the URL without reloading
-          const newPath = basePath + '/oauth2/callback' + window.location.search + window.location.hash;
-          window.history.replaceState({}, '', newPath);
-          // The search params are already available, so we can continue
-        }
-        
         // Log current URL for debugging
         console.log('OAuth2Callback: Current URL:', window.location.href);
         console.log('OAuth2Callback: Base path:', import.meta.env.BASE_URL);
