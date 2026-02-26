@@ -119,9 +119,9 @@ const Register = () => {
 
           {success && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
-              <div className="flex items-start sm:items-center">
+              <div className="flex items-start">
                 <svg
-                  className="h-5 w-5 text-green-600 mr-2 shrink-0 mt-0.5 sm:mt-0"
+                  className="h-5 w-5 text-green-600 mr-2 shrink-0 mt-0.5"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
                   fill="currentColor"
@@ -132,7 +132,14 @@ const Register = () => {
                     clipRule="evenodd"
                   />
                 </svg>
-                <p className="text-sm sm:text-base text-green-800 font-medium wrap-break-word">Registration successful! You can now login.</p>
+                <div className="flex-1">
+                  <p className="text-sm sm:text-base text-green-800 font-medium wrap-break-word">
+                    Registration successful!
+                  </p>
+                  <p className="text-sm text-green-700 mt-1 wrap-break-word">
+                    Please check your email and click the verification link to activate your account. You will be able to login after verifying your email.
+                  </p>
+                </div>
               </div>
             </div>
           )}

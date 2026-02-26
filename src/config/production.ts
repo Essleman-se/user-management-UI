@@ -15,10 +15,25 @@ export const productionConfig = {
     baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
   },
   
+  // Frontend Configuration
+  frontend: {
+    // Frontend base URL for production (GitHub Pages)
+    baseUrl: 'https://essleman-se.github.io',
+    // Frontend base path for GitHub Pages
+    basePath: '/user-management-UI',
+  },
+  
   // OAuth2 Configuration
   oauth2: {
     // Frontend callback URL for production (GitHub Pages)
     callbackUrl: 'https://essleman-se.github.io/user-management-UI/oauth2/callback',
+  },
+  
+  // Email Verification Configuration
+  emailVerification: {
+    // Frontend verification URL for production
+    // Backend should use this when generating email verification links
+    verificationUrl: 'https://essleman-se.github.io/user-management-UI/verify-email',
   },
   
   // Environment

@@ -4,6 +4,10 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  // Only use base path in production builds, not in development
+  // This allows email links to work in both dev and production
+  // In dev: base is "/" so links like /verify-email work directly
+  // In prod: base is "/user-management-UI" for GitHub Pages
   "base": "/user-management-UI",
   server: {
     proxy: {
