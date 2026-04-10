@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { getApiUrl } from '../../utils/api';
+import { normalizeEmail } from '../../utils/email';
 
 interface RegisterFormData {
   name: string;
@@ -36,6 +37,13 @@ const Register = () => {
     }));
     // Clear error when user starts typing
     if (error) setError(null);
+  };
+
+  const handleEmailBlur = () => {
+    setFormData((prev) => ({
+      ...prev,
+      email: normalizeEmail(prev.email),
+    }));
   };
 
   const handleSexSelect = (value: string) => {
@@ -78,7 +86,7 @@ const Register = () => {
           name: formData.name,
           age: parseInt(formData.age),
           sex: formData.sex,
-          email: formData.email,
+          email: normalizeEmail(formData.email),
           password: formData.password,
           role: formData.role,
         }),
@@ -259,6 +267,7 @@ const Register = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
+                onBlur={handleEmailBlur}
                 required
                 className="w-full max-w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 placeholder="Enter your email"

@@ -17,6 +17,14 @@ vi.mock('react-router-dom', async () => {
 describe('Login Component', () => {
   const mockOnLoginSuccess = vi.fn();
 
+  /** OAuth2Buttons fetches providers on mount; tests must resolve this before login/error mocks. */
+  const mockOAuth2ProvidersResponse = {
+    ok: true,
+    status: 200,
+    headers: new Headers({ 'content-type': 'application/json' }),
+    json: async () => ({ providers: ['google'] }),
+  };
+
   beforeEach(() => {
     // Clear all mocks before each test
     vi.clearAllMocks();
@@ -130,6 +138,7 @@ describe('Login Component', () => {
         message: 'Login successful',
       };
 
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockOAuth2ProvidersResponse);
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -155,6 +164,7 @@ describe('Login Component', () => {
           },
           body: JSON.stringify({
             email: 'test@example.com',
+            username: 'test@example.com',
             password: 'password123',
           }),
         });
@@ -181,6 +191,7 @@ describe('Login Component', () => {
         token: mockToken,
       };
 
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockOAuth2ProvidersResponse);
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -206,6 +217,7 @@ describe('Login Component', () => {
         token: 'test-token',
       };
 
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockOAuth2ProvidersResponse);
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -230,6 +242,7 @@ describe('Login Component', () => {
         token: 'test-token',
       };
 
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockOAuth2ProvidersResponse);
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -254,6 +267,7 @@ describe('Login Component', () => {
         token: 'test-token',
       };
 
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockOAuth2ProvidersResponse);
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -278,6 +292,7 @@ describe('Login Component', () => {
       const user = userEvent.setup();
       const errorMessage = 'Invalid credentials';
 
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockOAuth2ProvidersResponse);
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: false,
         status: 401,
@@ -302,6 +317,7 @@ describe('Login Component', () => {
     it('should display error message when API returns error with non-JSON response', async () => {
       const user = userEvent.setup();
 
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockOAuth2ProvidersResponse);
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: false,
         status: 500,
@@ -323,6 +339,7 @@ describe('Login Component', () => {
     it('should display error when API returns HTML instead of JSON', async () => {
       const user = userEvent.setup();
 
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockOAuth2ProvidersResponse);
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -345,6 +362,7 @@ describe('Login Component', () => {
       const user = userEvent.setup();
       const errorMessage = 'Network error';
 
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockOAuth2ProvidersResponse);
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
         new Error(errorMessage)
       );
@@ -363,6 +381,7 @@ describe('Login Component', () => {
     it('should display generic error message when error has no message', async () => {
       const user = userEvent.setup();
 
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockOAuth2ProvidersResponse);
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce({});
 
       renderLogin();
@@ -386,6 +405,7 @@ describe('Login Component', () => {
         resolveFetch = resolve;
       });
 
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockOAuth2ProvidersResponse);
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockReturnValueOnce(fetchPromise);
 
       renderLogin();
@@ -419,6 +439,7 @@ describe('Login Component', () => {
         resolveFetch = resolve;
       });
 
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockOAuth2ProvidersResponse);
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockReturnValueOnce(fetchPromise);
 
       renderLogin();
@@ -458,6 +479,7 @@ describe('Login Component', () => {
         token: 'test-token',
       };
 
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockOAuth2ProvidersResponse);
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -478,6 +500,40 @@ describe('Login Component', () => {
   });
 
   describe('Edge Cases', () => {
+    it('should normalize email to lowercase for API and localStorage', async () => {
+      const user = userEvent.setup();
+      const mockResponse = { token: 't', message: 'ok' };
+
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockOAuth2ProvidersResponse);
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => mockResponse,
+      });
+
+      renderLogin();
+
+      await user.type(screen.getByLabelText(/email/i), '  User@Example.COM  ');
+      await user.type(screen.getByLabelText(/password/i), 'password123');
+      await user.click(screen.getByRole('button', { name: /login/i }));
+
+      await waitFor(() => {
+        expect(globalThis.fetch).toHaveBeenCalledWith('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: 'user@example.com',
+            username: 'user@example.com',
+            password: 'password123',
+          }),
+        });
+        expect(localStorage.setItem).toHaveBeenCalledWith('userEmail', 'user@example.com');
+      });
+    });
+
     it('should handle login response without token', async () => {
       const user = userEvent.setup();
       const mockResponse = {
@@ -485,6 +541,7 @@ describe('Login Component', () => {
         // No token
       };
 
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockOAuth2ProvidersResponse);
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -513,6 +570,7 @@ describe('Login Component', () => {
     it('should handle empty error response', async () => {
       const user = userEvent.setup();
 
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockOAuth2ProvidersResponse);
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: false,
         status: 500,

@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import OAuth2Buttons from '../oauth2/OAuth2Buttons';
 import { getApiUrl } from '../../utils/api';
+import { normalizeEmail } from '../../utils/email';
 
 interface LoginFormData {
   email: string;
@@ -44,19 +45,30 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
     if (error) setError(null);
   };
 
+  /** Trim + lowercase so login matches regardless of how the user types their email. */
+  const handleEmailBlur = () => {
+    setFormData((prev) => ({
+      ...prev,
+      email: normalizeEmail(prev.email),
+    }));
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
+      const email = normalizeEmail(formData.email);
       const response = await fetch(getApiUrl('/api/auth/login'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: formData.email,
+          email,
+          // Many backends (e.g. Spring Security) use "username" for the login principal; keep in sync with email.
+          username: email,
           password: formData.password,
         }),
       });
@@ -87,8 +99,8 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
         localStorage.setItem('token', data.token);
       }
 
-      // Store email for fetching user info
-      localStorage.setItem('userEmail', formData.email);
+      // Store email for fetching user info (canonical form)
+      localStorage.setItem('userEmail', email);
 
       // Call success callback if provided
       if (onLoginSuccess) {
@@ -143,6 +155,7 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
+                onBlur={handleEmailBlur}
                 required
                 className="w-full max-w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 placeholder="Enter your email"
