@@ -17,13 +17,11 @@ const OAuth2Buttons = ({ onProviderClick, className = '' }: OAuth2ButtonsProps) 
         if (Array.isArray(availableProviders) && availableProviders.length > 0) {
           setProviders(availableProviders);
         } else {
-          // Fallback to default providers if empty or invalid
-          setProviders(['google', 'github']);
+          setProviders(['google']);
         }
       } catch (error) {
         console.error('Error loading OAuth2 providers:', error);
-        // Use default providers if fetch fails - don't break the page
-        setProviders(['google', 'github']);
+        setProviders(['google']);
       } finally {
         setLoading(false);
       }
@@ -45,11 +43,11 @@ const OAuth2Buttons = ({ onProviderClick, className = '' }: OAuth2ButtonsProps) 
   };
 
   const getProviderButtonClass = (provider: OAuth2Provider): string => {
-    const baseClass = 'w-full flex items-center justify-center px-4 py-2.5 border border-gray-300 rounded-md text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
+    const baseClass =
+      'w-full flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-xs font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1';
     
     const providerClasses: Record<OAuth2Provider, string> = {
       google: 'bg-white text-gray-700 hover:bg-gray-50 focus:ring-blue-500',
-      github: 'bg-gray-900 text-white hover:bg-gray-800 focus:ring-gray-500',
       facebook: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
       microsoft: 'bg-white text-gray-700 hover:bg-gray-50 focus:ring-blue-500',
     };
@@ -62,7 +60,7 @@ const OAuth2Buttons = ({ onProviderClick, className = '' }: OAuth2ButtonsProps) 
     switch (provider) {
       case 'google':
         return (
-          <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 mr-1.5 shrink-0" viewBox="0 0 24 24">
             <path
               fill="#4285F4"
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -81,25 +79,15 @@ const OAuth2Buttons = ({ onProviderClick, className = '' }: OAuth2ButtonsProps) 
             />
           </svg>
         );
-      case 'github':
-        return (
-          <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-            <path
-              fillRule="evenodd"
-              d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"
-              clipRule="evenodd"
-            />
-          </svg>
-        );
       case 'facebook':
         return (
-          <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 mr-1.5 shrink-0" fill="currentColor" viewBox="0 0 24 24">
             <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
           </svg>
         );
       case 'microsoft':
         return (
-          <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 mr-1.5 shrink-0" viewBox="0 0 24 24">
             <path fill="#f25022" d="M1 1h10v10H1z" />
             <path fill="#00a4ef" d="M13 1h10v10H13z" />
             <path fill="#7fba00" d="M1 13h10v10H1z" />
@@ -113,8 +101,8 @@ const OAuth2Buttons = ({ onProviderClick, className = '' }: OAuth2ButtonsProps) 
 
   if (loading) {
     return (
-      <div className={`flex items-center justify-center py-4 ${className}`}>
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+      <div className={`flex items-center justify-center py-2 ${className}`}>
+        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600"></div>
       </div>
     );
   }
@@ -124,17 +112,17 @@ const OAuth2Buttons = ({ onProviderClick, className = '' }: OAuth2ButtonsProps) 
   }
 
   return (
-    <div className={`space-y-3 ${className}`}>
+    <div className={`space-y-2 ${className}`}>
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-gray-300"></div>
         </div>
-        <div className="relative flex justify-center text-sm">
+        <div className="relative flex justify-center text-xs">
           <span className="px-2 bg-white text-gray-500">Or continue with</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-1 gap-2">
         {providers.map((provider) => (
           <button
             key={provider}

@@ -120,16 +120,18 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto w-full">
-        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 w-full">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-6 text-center">User Registration</h1>
+    <div className="min-h-[calc(100dvh-2.5rem)] bg-gray-50 py-2 sm:py-3 px-3 sm:px-4 flex flex-col justify-center">
+      <div className="max-w-3xl mx-auto w-full max-h-[calc(100dvh-2.5rem)] overflow-y-auto">
+        <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 w-full">
+          <h1 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3 text-center">
+            User Registration
+          </h1>
 
           {success && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
-              <div className="flex items-start">
+            <div className="bg-green-50 border border-green-200 rounded-md p-2 sm:p-2.5 mb-2 sm:mb-3">
+              <div className="flex items-start gap-2">
                 <svg
-                  className="h-5 w-5 text-green-600 mr-2 shrink-0 mt-0.5"
+                  className="h-4 w-4 text-green-600 shrink-0 mt-0.5"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
                   fill="currentColor"
@@ -140,12 +142,12 @@ const Register = () => {
                     clipRule="evenodd"
                   />
                 </svg>
-                <div className="flex-1">
-                  <p className="text-sm sm:text-base text-green-800 font-medium wrap-break-word">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm text-green-800 font-medium wrap-break-word">
                     Registration successful!
                   </p>
-                  <p className="text-sm text-green-700 mt-1 wrap-break-word">
-                    Please check your email and click the verification link to activate your account. You will be able to login after verifying your email.
+                  <p className="text-xs text-green-700 mt-0.5 wrap-break-word leading-snug">
+                    Check your email for the verification link, then you can log in.
                   </p>
                 </div>
               </div>
@@ -153,10 +155,10 @@ const Register = () => {
           )}
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
-              <div className="flex items-start sm:items-center">
+            <div className="bg-red-50 border border-red-200 rounded-md p-2 sm:p-2.5 mb-2 sm:mb-3">
+              <div className="flex items-start sm:items-center gap-2">
                 <svg
-                  className="h-5 w-5 text-red-600 mr-2 shrink-0 mt-0.5 sm:mt-0"
+                  className="h-4 w-4 text-red-600 shrink-0 mt-0.5 sm:mt-0"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
                   fill="currentColor"
@@ -167,15 +169,18 @@ const Register = () => {
                     clipRule="evenodd"
                   />
                 </svg>
-                <p className="text-sm sm:text-base text-red-800 font-medium wrap-break-word">Error: {error}</p>
+                <p className="text-xs sm:text-sm text-red-800 font-medium wrap-break-word">Error: {error}</p>
               </div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 w-full max-w-full min-w-0">
+          <form
+            onSubmit={handleSubmit}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 sm:gap-x-4 gap-y-2 sm:gap-y-2.5 w-full max-w-full min-w-0"
+          >
             {/* Name */}
-            <div className="w-full">
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+            <div className="w-full min-w-0">
+              <label htmlFor="name" className="block text-xs font-medium text-gray-700 mb-0.5">
                 Name
               </label>
               <input
@@ -185,14 +190,14 @@ const Register = () => {
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full max-w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full max-w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 placeholder="Enter your name"
               />
             </div>
 
             {/* Age */}
-            <div className="w-full">
-              <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+            <div className="w-full min-w-0">
+              <label htmlFor="age" className="block text-xs font-medium text-gray-700 mb-0.5">
                 Age
               </label>
               <input
@@ -204,28 +209,28 @@ const Register = () => {
                 required
                 min="1"
                 max="120"
-                className="w-full max-w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full max-w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 placeholder="Enter your age"
               />
             </div>
 
             {/* Sex */}
             <div className="w-full min-w-0">
-              <label htmlFor="sex" className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+              <label htmlFor="sex" className="block text-xs font-medium text-gray-700 mb-0.5">
                 Sex
               </label>
               <div className="relative w-full min-w-0">
                 <button
                   type="button"
                   id="sex"
-                  className="w-full min-w-0 px-3 sm:px-4 py-2 pr-8 text-left text-sm sm:text-base border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent box-border flex items-center justify-between"
+                  className="w-full min-w-0 px-2.5 py-1.5 pr-7 text-left text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent box-border flex items-center justify-between"
                   onClick={() => setIsSexOpen((prev) => !prev)}
                 >
                   <span className={formData.sex ? 'text-gray-900' : 'text-gray-400'}>
                     {formData.sex || 'Select sex'}
                   </span>
                   <svg
-                    className={`h-5 w-5 text-gray-400 transition-transform ${isSexOpen ? 'rotate-180' : ''}`}
+                    className={`h-4 w-4 text-gray-400 transition-transform shrink-0 ${isSexOpen ? 'rotate-180' : ''}`}
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
                     fill="currentColor"
@@ -238,13 +243,13 @@ const Register = () => {
                   </svg>
                 </button>
                 {isSexOpen && (
-                  <div className="absolute z-30 mt-1 w-full max-h-48 overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg">
+                  <div className="absolute z-30 mt-0.5 w-full max-h-40 overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg">
                     {['MALE', 'FEMALE', 'OTHER'].map((option) => (
                       <button
                         key={option}
                         type="button"
                         onClick={() => handleSexSelect(option)}
-                        className={`w-full text-left px-3 py-2 text-sm sm:text-base hover:bg-gray-100 ${
+                        className={`w-full text-left px-2.5 py-1.5 text-sm hover:bg-gray-100 ${
                           formData.sex === option ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'
                         }`}
                       >
@@ -256,77 +261,23 @@ const Register = () => {
               </div>
             </div>
 
-            {/* Email */}
-            <div className="w-full">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                onBlur={handleEmailBlur}
-                required
-                className="w-full max-w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Enter your email"
-              />
-            </div>
-
-            {/* Password */}
-            <div className="w-full">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                minLength={6}
-                className="w-full max-w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Enter your password"
-              />
-            </div>
-
-            {/* Confirm Password */}
-            <div className="w-full">
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                Re-enter Password
-              </label>
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword ?? ''}
-                onChange={handleChange}
-                required
-                minLength={6}
-                className="w-full max-w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Re-enter your password"
-              />
-            </div>
-
             {/* Role */}
             <div className="w-full min-w-0">
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+              <label htmlFor="role" className="block text-xs font-medium text-gray-700 mb-0.5">
                 Role
               </label>
               <div className="relative w-full min-w-0">
                 <button
                   type="button"
                   id="role"
-                  className="w-full min-w-0 px-3 sm:px-4 py-2 pr-8 text-left text-sm sm:text-base border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent box-border flex items-center justify-between"
+                  className="w-full min-w-0 px-2.5 py-1.5 pr-7 text-left text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent box-border flex items-center justify-between"
                   onClick={() => setIsRoleOpen((prev) => !prev)}
                 >
                   <span className={formData.role ? 'text-gray-900' : 'text-gray-400'}>
                     {formData.role || 'Select role'}
                   </span>
                   <svg
-                    className={`h-5 w-5 text-gray-400 transition-transform ${isRoleOpen ? 'rotate-180' : ''}`}
+                    className={`h-4 w-4 text-gray-400 transition-transform shrink-0 ${isRoleOpen ? 'rotate-180' : ''}`}
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
                     fill="currentColor"
@@ -339,13 +290,13 @@ const Register = () => {
                   </svg>
                 </button>
                 {isRoleOpen && (
-                  <div className="absolute z-30 mt-1 w-full max-h-48 overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg">
+                  <div className="absolute z-30 mt-0.5 w-full max-h-40 overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg">
                     {['USER', 'ADMIN', 'MODERATOR'].map((option) => (
                       <button
                         key={option}
                         type="button"
                         onClick={() => handleRoleSelect(option)}
-                        className={`w-full text-left px-3 py-2 text-sm sm:text-base hover:bg-gray-100 ${
+                        className={`w-full text-left px-2.5 py-1.5 text-sm hover:bg-gray-100 ${
                           formData.role === option ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'
                         }`}
                       >
@@ -357,12 +308,66 @@ const Register = () => {
               </div>
             </div>
 
+            {/* Email */}
+            <div className="w-full min-w-0 sm:col-span-2">
+              <label htmlFor="email" className="block text-xs font-medium text-gray-700 mb-0.5">
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                onBlur={handleEmailBlur}
+                required
+                className="w-full max-w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                placeholder="Enter your email"
+              />
+            </div>
+
+            {/* Password */}
+            <div className="w-full min-w-0">
+              <label htmlFor="password" className="block text-xs font-medium text-gray-700 mb-0.5">
+                Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                minLength={6}
+                className="w-full max-w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                placeholder="Enter your password"
+              />
+            </div>
+
+            {/* Confirm Password */}
+            <div className="w-full min-w-0">
+              <label htmlFor="confirmPassword" className="block text-xs font-medium text-gray-700 mb-0.5">
+                Re-enter Password
+              </label>
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword ?? ''}
+                onChange={handleChange}
+                required
+                minLength={6}
+                className="w-full max-w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                placeholder="Re-enter your password"
+              />
+            </div>
+
             {/* Submit Button */}
-            <div>
+            <div className="sm:col-span-2">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-indigo-600 text-white py-2.5 sm:py-3 px-4 rounded-md text-sm sm:text-base font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               >
                 {loading ? (
                   <span className="flex items-center justify-center">
