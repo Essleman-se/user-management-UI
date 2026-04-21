@@ -118,17 +118,17 @@ const Register = () => {
   };
 
   const inputClass =
-    'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm transition-shadow placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20';
+    'w-full rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-sm text-gray-900 shadow-sm transition-shadow placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20';
 
   return (
-    <div className="h-[calc(100dvh-2.5rem)] overflow-hidden bg-linear-to-b from-slate-50 via-white to-indigo-50/40 px-4 py-3 flex flex-col justify-center">
+    <div className="h-[calc(100dvh-2.5rem)] overflow-hidden bg-linear-to-b from-slate-50 via-white to-indigo-50/40 px-4 py-2 flex flex-col justify-center">
       <div className="max-w-md mx-auto w-full">
-        <div className="rounded-2xl bg-white p-5 shadow-xl shadow-indigo-950/5 ring-1 ring-gray-200/80 sm:p-6">
-          <p className="text-center text-[11px] leading-snug text-gray-500 sm:text-xs">
+        <div className="rounded-xl bg-white p-4 shadow-lg shadow-indigo-950/5 ring-1 ring-gray-200/80">
+          <p className="text-center text-[10px] leading-tight text-gray-500 sm:text-[11px]">
             Create your account — join us in a minute.
           </p>
 
-          <div className="mt-3 max-h-[calc(100dvh-2.5rem-4.25rem)] overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] pr-0.5">
+          <div className="mt-2 max-h-[calc(100dvh-2.5rem-3.25rem)] overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] pr-0.5">
             {success && (
               <div className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50/90 p-3 shadow-sm">
                 <div className="flex gap-2">
@@ -152,7 +152,7 @@ const Register = () => {
             )}
 
             {error && (
-              <div className="mb-3 rounded-lg border border-red-200 bg-red-50/90 p-3 shadow-sm">
+              <div className="mb-2 rounded-md border border-red-200 bg-red-50/90 p-2.5 shadow-sm">
                 <div className="flex gap-2">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-red-100 text-red-600">
                     <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -170,9 +170,9 @@ const Register = () => {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-2">
               <div>
-                <label htmlFor="firstName" className="mb-1 block text-xs font-medium text-gray-700 sm:text-sm">
+                <label htmlFor="firstName" className="mb-0.5 block text-xs font-medium text-gray-700">
                   First name
                 </label>
                 <input
@@ -189,7 +189,7 @@ const Register = () => {
               </div>
 
               <div>
-                <label htmlFor="lastName" className="mb-1 block text-xs font-medium text-gray-700 sm:text-sm">
+                <label htmlFor="lastName" className="mb-0.5 block text-xs font-medium text-gray-700">
                   Last name
                 </label>
                 <input
@@ -206,7 +206,7 @@ const Register = () => {
               </div>
 
               <div>
-                <label htmlFor="email" className="mb-1 block text-xs font-medium text-gray-700 sm:text-sm">
+                <label htmlFor="email" className="mb-0.5 block text-xs font-medium text-gray-700">
                   Email
                 </label>
                 <input
@@ -224,7 +224,7 @@ const Register = () => {
               </div>
 
               <div>
-                <label htmlFor="phone" className="mb-1 block text-xs font-medium text-gray-700 sm:text-sm">
+                <label htmlFor="phone" className="mb-0.5 block text-xs font-medium text-gray-700">
                   Phone
                 </label>
                 <input
@@ -242,7 +242,7 @@ const Register = () => {
               </div>
 
               <div>
-                <label htmlFor="password" className="mb-1 block text-xs font-medium text-gray-700 sm:text-sm">
+                <label htmlFor="password" className="mb-0.5 block text-xs font-medium text-gray-700">
                   Password
                 </label>
                 <input
@@ -260,7 +260,7 @@ const Register = () => {
               </div>
 
               <div>
-                <label htmlFor="confirmPassword" className="mb-1 block text-xs font-medium text-gray-700 sm:text-sm">
+                <label htmlFor="confirmPassword" className="mb-0.5 block text-xs font-medium text-gray-700">
                   Confirm password
                 </label>
                 <input
@@ -277,11 +277,11 @@ const Register = () => {
                 />
               </div>
 
-              <div className="pt-0.5">
+              <div className="pt-0">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-600/20 transition hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-600/25 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="w-full rounded-md bg-indigo-600 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-600/20 transition hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-600/25 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">

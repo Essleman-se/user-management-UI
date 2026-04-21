@@ -8,6 +8,8 @@ import Login from './components/login/Login'
 import UserAccount from './components/user-account/UserAccount'
 import OAuth2Callback from './components/oauth2/OAuth2Callback'
 import VerifyEmail from './components/verify-email/VerifyEmail'
+import ForgotPassword from './components/forgot-password/ForgotPassword'
+import ResetPassword from './components/reset-password/ResetPassword'
 
 // Component to handle GitHub Pages 404 redirects from index.html
 // Also handles direct access to routes without base path (for email verification links)
@@ -35,6 +37,14 @@ function RedirectHandler() {
       console.log('RedirectHandler: Detected direct access to /verify-email, redirecting with base path');
       hasRedirectedRef.current = true;
       navigate('/verify-email' + search + location.hash, { replace: true });
+      return;
+    }
+
+    // Password reset link from email (same SPA basename pattern as verify-email)
+    if (pathname === '/reset-password' && hasToken && !pathname.startsWith(basePath)) {
+      console.log('RedirectHandler: Detected direct access to /reset-password, redirecting with base path');
+      hasRedirectedRef.current = true;
+      navigate('/reset-password' + search + location.hash, { replace: true });
       return;
     }
     
@@ -104,6 +114,8 @@ function App() {
         <Route path="/" element={<Main isAuthenticated={isAuthenticated} />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login onLoginSuccess={handleLogin} />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route 
           path="/oauth2/callback" 

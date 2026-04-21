@@ -24,13 +24,22 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
-  // Check for OAuth2 error from location state
+  // Check for OAuth2 error or password-reset success from location state
   useEffect(() => {
-    const state = location.state as { oauth2Error?: string } | null;
+    const state = location.state as {
+      oauth2Error?: string;
+      passwordReset?: boolean;
+      resetMessage?: string;
+    } | null;
     if (state?.oauth2Error) {
       setError(state.oauth2Error);
-      // Clear the state to prevent showing error on re-render
+      window.history.replaceState({}, document.title);
+    }
+    if (state?.passwordReset && state?.resetMessage) {
+      setInfoMessage(state.resetMessage);
+      setError(null);
       window.history.replaceState({}, document.title);
     }
   }, [location]);
@@ -43,6 +52,7 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
     }));
     // Clear error when user starts typing
     if (error) setError(null);
+    if (infoMessage) setInfoMessage(null);
   };
 
   /** Trim + lowercase so login matches regardless of how the user types their email. */
@@ -179,6 +189,14 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
                 placeholder="Enter your password"
                 autoComplete="current-password"
               />
+              <div className="mt-1 text-right">
+                <Link
+                  to="/forgot-password"
+                  className="text-[11px] font-medium text-indigo-600 hover:text-indigo-500"
+                >
+                  Forgot password?
+                </Link>
+              </div>
             </div>
 
             {/* Submit Button */}
