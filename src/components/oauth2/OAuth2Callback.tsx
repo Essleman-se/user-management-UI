@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getApiUrl, getApiBaseUrl } from '../../utils/api';
+import { exchangeOAuth2AuthorizationCode, type OAuth2Provider } from '../../utils/oauth2';
 
 interface OAuth2CallbackProps {
   onLoginSuccess?: () => void;
@@ -94,46 +95,7 @@ const OAuth2Callback = ({ onLoginSuccess }: OAuth2CallbackProps) => {
           }
         }
 
-        // Try to get token from backend success endpoint (if we're on frontend)
-        try {
-          const successResponse = await fetch(getApiUrl('/api/oauth2/success'), {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/json',
-            },
-            credentials: 'include',
-          });
-
-          if (successResponse.ok) {
-            const contentType = successResponse.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-              const successData = await successResponse.json();
-              
-              if (successData.token) {
-                console.log('OAuth2 login successful from success endpoint:', successData);
-                
-                // Store token temporarily (don't store in localStorage yet)
-                setToken(successData.token);
-                
-                // Get email from OAuth2 response
-                const emailFromOAuth = successData.user?.email || successData.email || '';
-                console.log('Email from OAuth2:', emailFromOAuth);
-                setOauth2Email(emailFromOAuth);
-                setUserEmail(emailFromOAuth || ''); // Set empty string if no email
-                
-                // Always show email input to allow user to confirm/change it
-                console.log('Showing email confirmation screen');
-                setShowEmailInput(true);
-                setLoading(false);
-                return;
-              }
-            }
-          }
-        } catch (err) {
-          console.warn('Could not fetch from success endpoint, trying other methods:', err);
-        }
-
-        // Get parameters from URL (fallback if success endpoint doesn't work)
+        // Get parameters from URL first (prefer fresh callback payload over possibly stale session endpoint)
         const code = searchParams.get('code');
         const state = searchParams.get('state');
         const errorParam = searchParams.get('error');
@@ -170,49 +132,12 @@ const OAuth2Callback = ({ onLoginSuccess }: OAuth2CallbackProps) => {
           throw new Error('OAuth2 token is missing or empty. Please try logging in again.');
         }
 
-        // If code is present, exchange it for token via backend
+        // If code is present, exchange it for token via backend (deduped — same code must not be POSTed twice)
         if (code) {
-          const provider = sessionStorage.getItem('oauth2_provider') || 'google';
-          // Construct redirect URI with base path (matches what was sent to backend)
-          const basePath = import.meta.env.BASE_URL || '/user-management-UI';
-          const callbackPath = basePath.endsWith('/') ? 'oauth2/callback' : '/oauth2/callback';
-          const redirectUri = `${window.location.origin}${basePath}${callbackPath}`;
-          console.log('OAuth2Callback: Exchanging code for token. Redirect URI:', redirectUri);
+          const provider = (sessionStorage.getItem('oauth2_provider') || 'google') as OAuth2Provider;
+          console.log('OAuth2Callback: Exchanging code for token (single-use; deduped in oauth2 util)');
 
-          // Exchange code for token using backend callback endpoint
-          const response = await fetch(getApiUrl('/api/oauth2/callback'), {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-            body: JSON.stringify({
-              code,
-              state,
-              provider,
-              redirect_uri: redirectUri,
-            }),
-          });
-
-          if (!response.ok) {
-            const contentType = response.headers.get('content-type');
-            let errorData;
-            if (contentType && contentType.includes('application/json')) {
-              errorData = await response.json().catch(() => ({ message: 'OAuth2 callback failed' }));
-            } else {
-              const text = await response.text();
-              errorData = { message: `Server error (${response.status}): ${text.substring(0, 100)}` };
-            }
-            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-          }
-
-          const contentType = response.headers.get('content-type');
-          if (!contentType || !contentType.includes('application/json')) {
-            const text = await response.text();
-            throw new Error(`Expected JSON but got: ${contentType}. Response: ${text.substring(0, 100)}`);
-          }
-
-          const data = await response.json();
+          const data = await exchangeOAuth2AuthorizationCode(code, state, provider);
           console.log('OAuth2 login successful:', data);
 
           // Store token temporarily (don't store in localStorage yet)
@@ -224,16 +149,49 @@ const OAuth2Callback = ({ onLoginSuccess }: OAuth2CallbackProps) => {
           }
 
           // Get email from OAuth2 response
-          const emailFromOAuth = data.user?.email || data.email || '';
+          const rawEmail = data.user?.email ?? data.email;
+          const emailFromOAuth = typeof rawEmail === 'string' ? rawEmail : '';
           console.log('Email from OAuth2 callback:', emailFromOAuth);
           setOauth2Email(emailFromOAuth);
-          setUserEmail(emailFromOAuth || ''); // Set empty string if no email
+          setUserEmail(emailFromOAuth);
           
           // Always show email input to allow user to confirm/change it
           console.log('Showing email confirmation screen');
           setShowEmailInput(true);
           setLoading(false);
           return;
+        }
+
+        // Fallback: if URL did not include token/code, then try backend success endpoint.
+        // Doing this *after* URL handling avoids reusing stale backend session data from a prior login.
+        try {
+          const successResponse = await fetch(getApiUrl('/api/oauth2/success'), {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+            },
+            credentials: 'include',
+          });
+
+          if (successResponse.ok) {
+            const contentType = successResponse.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+              const successData = await successResponse.json();
+              if (successData.token) {
+                console.log('OAuth2 login successful from success endpoint fallback:', successData);
+                setToken(successData.token);
+                const rawEmail = successData.user?.email ?? successData.email;
+                const emailFromOAuth = typeof rawEmail === 'string' ? rawEmail : '';
+                setOauth2Email(emailFromOAuth);
+                setUserEmail(emailFromOAuth);
+                setShowEmailInput(true);
+                setLoading(false);
+                return;
+              }
+            }
+          }
+        } catch (err) {
+          console.warn('Could not fetch from success endpoint fallback:', err);
         }
 
 
@@ -272,7 +230,9 @@ const OAuth2Callback = ({ onLoginSuccess }: OAuth2CallbackProps) => {
     };
 
     handleCallback();
-  }, [searchParams, navigate, onLoginSuccess]);
+    // onLoginSuccess is only used after email confirmation, not in this effect
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- avoid re-running OAuth handling when parent re-renders
+  }, [searchParams, navigate]);
 
   if (loading) {
     return (

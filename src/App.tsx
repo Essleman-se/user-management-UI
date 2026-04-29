@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import './App.css'
 import Navbar from './components/navbar/Navbar'
@@ -95,9 +95,9 @@ function RedirectHandler() {
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-  const handleLogin = () => {
+  const handleLogin = useCallback(() => {
     setIsAuthenticated(true)
-  }
+  }, [])
 
   const handleLogout = () => {
     setIsAuthenticated(false)

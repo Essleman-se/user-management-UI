@@ -589,5 +589,154 @@ describe('Login Component', () => {
       });
     });
   });
+
+  describe('OTP verification flow', () => {
+    it('should show OTP step when login returns requiresVerification', async () => {
+      const user = userEvent.setup();
+
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockOAuth2ProvidersResponse);
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          requiresVerification: true,
+          message: 'We sent a code to your email.',
+        }),
+      });
+
+      renderLogin();
+
+      await user.type(screen.getByLabelText(/email/i), 'user@example.com');
+      await user.type(screen.getByLabelText(/password/i), 'secret12');
+      await user.click(screen.getByRole('button', { name: /login/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: /verification code/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /verify and sign in/i })).toBeInTheDocument();
+        expect(screen.getByText(/we sent a code/i)).toBeInTheDocument();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(localStorage.setItem).not.toHaveBeenCalledWith('token', expect.anything());
+    });
+
+    it('should submit verify-code and complete login on success', async () => {
+      const user = userEvent.setup();
+
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockOAuth2ProvidersResponse);
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ requiresVerification: true }),
+      });
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ token: 'otp-session-token' }),
+      });
+
+      renderLogin();
+
+      await user.type(screen.getByLabelText(/email/i), 'otp@example.com');
+      await user.type(screen.getByLabelText(/password/i), 'password123');
+      await user.click(screen.getByRole('button', { name: /login/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /verify and sign in/i })).toBeInTheDocument();
+      });
+
+      const digitInputs = screen.getAllByRole('textbox', { name: /digit/i });
+      expect(digitInputs).toHaveLength(6);
+      for (let i = 0; i < 6; i++) {
+        await user.type(digitInputs[i], String(i + 1));
+      }
+
+      await user.click(screen.getByRole('button', { name: /verify and sign in/i }));
+
+      await waitFor(() => {
+        expect(globalThis.fetch).toHaveBeenCalledWith('/api/auth/login/verify-code', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: 'otp@example.com',
+            username: 'otp@example.com',
+            code: '123456',
+          }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(localStorage.setItem).toHaveBeenCalledWith('token', 'otp-session-token');
+        expect(localStorage.setItem).toHaveBeenCalledWith('userEmail', 'otp@example.com');
+        expect(mockNavigate).toHaveBeenCalledWith('/');
+      });
+    });
+
+    it('should show retry hint when verification code is invalid', async () => {
+      const user = userEvent.setup();
+
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockOAuth2ProvidersResponse);
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ requiresVerification: true }),
+      });
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ message: 'Invalid login verification code' }),
+      });
+
+      renderLogin();
+
+      await user.type(screen.getByLabelText(/email/i), 'u@example.com');
+      await user.type(screen.getByLabelText(/password/i), 'pw');
+      await user.click(screen.getByRole('button', { name: /login/i }));
+
+      await waitFor(() => screen.getByRole('button', { name: /verify and sign in/i }));
+
+      const digitInputs = screen.getAllByRole('textbox', { name: /digit/i });
+      for (let i = 0; i < 6; i++) {
+        await user.type(digitInputs[i], '9');
+      }
+      await user.click(screen.getByRole('button', { name: /verify and sign in/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/invalid login verification code/i)).toBeInTheDocument();
+        expect(screen.getByText(/request a new code/i)).toBeInTheDocument();
+      });
+    });
+
+    it('should return to credentials when Back to sign in is clicked', async () => {
+      const user = userEvent.setup();
+
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockOAuth2ProvidersResponse);
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ requiresVerification: true }),
+      });
+
+      renderLogin();
+
+      await user.type(screen.getByLabelText(/email/i), 'back@example.com');
+      await user.type(screen.getByLabelText(/password/i), 'pw');
+      await user.click(screen.getByRole('button', { name: /login/i }));
+
+      await waitFor(() => screen.getByRole('button', { name: /back to sign in/i }));
+      await user.click(screen.getByRole('button', { name: /back to sign in/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: /^login$/i })).toBeInTheDocument();
+        expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
+      });
+    });
+  });
 });
 

@@ -35,12 +35,21 @@ export interface OAuth2Config {
 /**
  * Get OAuth2 authorization URL for a provider from backend
  */
-export const getOAuth2AuthorizationUrl = async (provider: OAuth2Provider): Promise<string> => {
+export const getOAuth2AuthorizationUrl = async (
+  provider: OAuth2Provider,
+  options?: { prompt?: string }
+): Promise<string> => {
   try {
     const basePath = import.meta.env.BASE_URL || '/user-management-UI';
     const callbackPath = basePath.endsWith('/') ? 'oauth2/callback' : '/oauth2/callback';
     const redirectUri = `${window.location.origin}${basePath}${callbackPath}`;
-    const response = await fetch(`${getApiUrl(`/api/oauth2/authorization-url/${provider}`)}?redirect_uri=${encodeURIComponent(redirectUri)}`, {
+    const params = new URLSearchParams({
+      redirect_uri: redirectUri,
+    });
+    if (options?.prompt) {
+      params.set('prompt', options.prompt);
+    }
+    const response = await fetch(`${getApiUrl(`/api/oauth2/authorization-url/${provider}`)}?${params.toString()}`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
@@ -90,6 +99,52 @@ export const getOAuth2AuthorizationUrl = async (provider: OAuth2Provider): Promi
 };
 
 /**
+ * Google reuses the last signed-in browser session and skips the account UI unless we ask for it.
+ * Merges `select_account` into the existing `prompt` query param (preserves backend values like `consent`).
+ */
+export const mergeGoogleAccountChooserPrompt = (authUrl: string): string => {
+  try {
+    const url = new URL(authUrl);
+    if (!url.hostname.includes('accounts.google.')) {
+      return authUrl;
+    }
+    const parts = new Set(
+      (url.searchParams.get('prompt') ?? '')
+        .split(/\s+/)
+        .map((s) => s.trim())
+        .filter(Boolean)
+    );
+    parts.add('select_account');
+    url.searchParams.set('prompt', [...parts].join(' '));
+    return url.href;
+  } catch {
+    return authUrl;
+  }
+};
+
+/**
+ * Ensures the first backend/google hop also receives prompt=select_account.
+ * This is required when backend returns an internal /oauth2/... URL that later
+ * redirects to Google (hostname won't be accounts.google.com yet).
+ */
+export const withPromptQueryParam = (urlString: string, promptValue: string): string => {
+  try {
+    const url = new URL(urlString);
+    const parts = new Set(
+      (url.searchParams.get('prompt') ?? '')
+        .split(/\s+/)
+        .map((s) => s.trim())
+        .filter(Boolean)
+    );
+    parts.add(promptValue);
+    url.searchParams.set('prompt', [...parts].join(' '));
+    return url.href;
+  } catch {
+    return urlString;
+  }
+};
+
+/**
  * Initiate OAuth2 login flow
  * Fetches authorization URL from backend and redirects user to OAuth2 provider's authorization page
  */
@@ -101,8 +156,15 @@ export const initiateOAuth2Login = async (provider: OAuth2Provider): Promise<voi
     sessionStorage.setItem('oauth2_frontend_origin', window.location.origin);
     
     // Get authorization URL from backend
-    const authUrl = await getOAuth2AuthorizationUrl(provider);
-    
+    const googlePrompt = provider === 'google' ? 'login select_account' : undefined;
+    let authUrl = await getOAuth2AuthorizationUrl(provider, { prompt: googlePrompt });
+
+    if (provider === 'google') {
+      authUrl = withPromptQueryParam(authUrl, 'login');
+      authUrl = withPromptQueryParam(authUrl, 'select_account');
+      authUrl = mergeGoogleAccountChooserPrompt(authUrl);
+    }
+
     if (!authUrl) {
       throw new Error('Authorization URL not received from server');
     }
@@ -124,49 +186,94 @@ export const initiateOAuth2Login = async (provider: OAuth2Provider): Promise<voi
  * Handle OAuth2 callback
  * Processes the authorization code from OAuth2 provider
  */
+/** Same redirect_uri as authorization request (must match exactly for Google). */
+export const getOAuth2RedirectUri = (): string => {
+  const frontendOrigin = sessionStorage.getItem('oauth2_frontend_origin') || window.location.origin;
+  const basePath = import.meta.env.BASE_URL || '/user-management-UI';
+  const callbackPath = basePath.endsWith('/') ? 'oauth2/callback' : '/oauth2/callback';
+  return `${frontendOrigin}${basePath}${callbackPath}`;
+};
+
+export type OAuth2CallbackResponse = {
+  token: string;
+  user?: Record<string, unknown>;
+  email?: string;
+};
+
+/**
+ * Google (and others) issue a single-use authorization code. React Strict Mode runs
+ * effects twice in dev, and unstable effect deps can re-run the handler — duplicate
+ * POSTs cause invalid_grant and the user is never persisted server-side. Dedupe by code.
+ */
+const oauth2CodeExchangeInflight = new Map<string, Promise<OAuth2CallbackResponse>>();
+
+export const exchangeOAuth2AuthorizationCode = (
+  code: string,
+  state: string | null | undefined,
+  provider: OAuth2Provider
+): Promise<OAuth2CallbackResponse> => {
+  let inflight = oauth2CodeExchangeInflight.get(code);
+  if (inflight) {
+    return inflight;
+  }
+
+  inflight = (async () => {
+    try {
+      const response = await fetch(getApiUrl('/api/oauth2/callback'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          code,
+          state: state ?? undefined,
+          provider,
+          redirect_uri: getOAuth2RedirectUri(),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({
+          message: 'OAuth2 callback failed',
+        }));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        throw new Error(`Expected JSON but got: ${contentType}. Response: ${text.substring(0, 100)}`);
+      }
+
+      return (await response.json()) as OAuth2CallbackResponse;
+    } finally {
+      oauth2CodeExchangeInflight.delete(code);
+    }
+  })();
+
+  oauth2CodeExchangeInflight.set(code, inflight);
+  return inflight;
+};
+
 export const handleOAuth2Callback = async (
   code: string,
   state?: string
 ): Promise<{ token: string; user?: Record<string, unknown> }> => {
   const provider = sessionStorage.getItem('oauth2_provider') as OAuth2Provider;
-  
+
   if (!provider) {
     throw new Error('OAuth2 provider not found in session');
   }
 
   try {
-    const response = await fetch(getApiUrl('/api/oauth2/callback'), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        code,
-        state,
-        provider,
-        redirect_uri: (() => {
-          const frontendOrigin = sessionStorage.getItem('oauth2_frontend_origin') || window.location.origin;
-          const basePath = import.meta.env.BASE_URL || '/user-management-UI';
-          const callbackPath = basePath.endsWith('/') ? 'oauth2/callback' : '/oauth2/callback';
-          return `${frontendOrigin}${basePath}${callbackPath}`;
-        })(),
-      }),
-    });
+    const data = await exchangeOAuth2AuthorizationCode(code, state, provider);
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ 
-        message: 'OAuth2 callback failed' 
-      }));
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    
     // Clear session storage
     sessionStorage.removeItem('oauth2_provider');
     sessionStorage.removeItem('oauth2_redirect_after_login');
     sessionStorage.removeItem('oauth2_frontend_origin');
-    
+
     return data;
   } catch (error) {
     sessionStorage.removeItem('oauth2_provider');
