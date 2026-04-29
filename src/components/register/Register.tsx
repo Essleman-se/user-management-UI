@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { getApiUrl } from '../../utils/api';
 import { messageFromApiErrorBody } from '../../utils/apiErrors';
 import { normalizeEmail } from '../../utils/email';
@@ -25,6 +26,8 @@ const Register = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -245,36 +248,56 @@ const Register = () => {
                 <label htmlFor="password" className="mb-0.5 block text-xs font-medium text-gray-700">
                   Password
                 </label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  minLength={6}
-                  autoComplete="new-password"
-                  className={inputClass}
-                  placeholder="At least 6 characters"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    minLength={6}
+                    autoComplete="new-password"
+                    className={`${inputClass} pr-10`}
+                    placeholder="At least 6 characters"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="absolute inset-y-0 right-0 flex items-center border border-transparent bg-transparent px-2.5 text-gray-500 shadow-none outline-none hover:text-gray-700 focus:outline-none focus:ring-0"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
 
               <div>
                 <label htmlFor="confirmPassword" className="mb-0.5 block text-xs font-medium text-gray-700">
                   Confirm password
                 </label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={formData.confirmPassword ?? ''}
-                  onChange={handleChange}
-                  required
-                  minLength={6}
-                  autoComplete="new-password"
-                  className={inputClass}
-                  placeholder="Re-enter your password"
-                />
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={formData.confirmPassword ?? ''}
+                    onChange={handleChange}
+                    required
+                    minLength={6}
+                    autoComplete="new-password"
+                    className={`${inputClass} pr-10`}
+                    placeholder="Re-enter your password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                    className="absolute inset-y-0 right-0 flex items-center border border-transparent bg-transparent px-2.5 text-gray-500 shadow-none outline-none hover:text-gray-700 focus:outline-none focus:ring-0"
+                  >
+                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
 
               <div className="pt-0">

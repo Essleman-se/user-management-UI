@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, type FormEvent, type ClipboardEvent, type KeyboardEvent } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import OAuth2Buttons from '../oauth2/OAuth2Buttons';
 import { getApiUrl } from '../../utils/api';
 import { messageFromApiErrorBody } from '../../utils/apiErrors';
@@ -63,6 +64,7 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -373,17 +375,27 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
                 <label htmlFor="password" className="block text-xs font-medium text-gray-700 mb-0.5">
                   Password
                 </label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleCredentialChange}
-                  required
-                  className="w-full max-w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md h-8 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent"
-                  placeholder="Enter your password"
-                  autoComplete="current-password"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleCredentialChange}
+                    required
+                    className="w-full max-w-full px-2.5 py-1.5 pr-10 text-sm border border-gray-300 rounded-md h-8 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent"
+                    placeholder="Enter your password"
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="absolute inset-y-0 right-0 flex items-center border border-transparent bg-transparent px-2.5 text-gray-500 shadow-none outline-none hover:text-gray-700 focus:outline-none focus:ring-0"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
                 <div className="mt-1 text-right">
                   <Link
                     to="/forgot-password"
