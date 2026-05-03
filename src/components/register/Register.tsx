@@ -264,7 +264,7 @@ const Register = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-label={showPassword ? 'Hide secret characters' : 'Show secret characters'}
                     className="absolute inset-y-0 right-0 flex items-center border border-transparent bg-transparent px-2.5 text-gray-500 shadow-none outline-none hover:text-gray-700 focus:outline-none focus:ring-0"
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -292,7 +292,7 @@ const Register = () => {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword((prev) => !prev)}
-                    aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                    aria-label={showConfirmPassword ? 'Hide confirmation characters' : 'Show confirmation characters'}
                     className="absolute inset-y-0 right-0 flex items-center border border-transparent bg-transparent px-2.5 text-gray-500 shadow-none outline-none hover:text-gray-700 focus:outline-none focus:ring-0"
                   >
                     {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}

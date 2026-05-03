@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import './App.css'
-import Navbar from './components/navbar/Navbar'
+import Header from './components/header/Header'
 import Main from './components/main/Main'
 import Register from './components/register/Register'
 import Login from './components/login/Login'
@@ -10,6 +10,8 @@ import OAuth2Callback from './components/oauth2/OAuth2Callback'
 import VerifyEmail from './components/verify-email/VerifyEmail'
 import ForgotPassword from './components/forgot-password/ForgotPassword'
 import ResetPassword from './components/reset-password/ResetPassword'
+import ContactUs from './components/contact-us/ContactUs'
+import Footer from './components/footer/Footer'
 
 // Component to handle GitHub Pages 404 redirects from index.html
 // Also handles direct access to routes without base path (for email verification links)
@@ -108,9 +110,10 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar isAuthenticated={isAuthenticated} onLogout={handleLogout} />
-      <Routes>
+    <div className="flex min-h-screen flex-col bg-gray-50">
+      <Header isAuthenticated={isAuthenticated} onLogout={handleLogout} />
+      <main className="flex-1 pt-[5.75rem]">
+        <Routes>
         <Route path="/" element={<Main isAuthenticated={isAuthenticated} />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login onLoginSuccess={handleLogin} />} />
@@ -132,9 +135,12 @@ function App() {
           } 
         />
         <Route path="/about" element={<div className="p-8"><h1 className="text-3xl font-bold">About</h1><p className="mt-4">About page coming soon...</p></div>} />
+        <Route path="/contact" element={<ContactUs variant="page" />} />
         {/* Catch-all route for index.html redirects - handles OAuth2 and email verification */}
         <Route path="/index.html" element={<RedirectHandler />} />
-      </Routes>
+        </Routes>
+      </main>
+      <Footer />
     </div>
   )
 }

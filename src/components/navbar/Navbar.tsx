@@ -7,6 +7,9 @@ interface NavbarProps {
   onLogout?: () => void;
 }
 
+const linkBase =
+  'rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-700';
+
 const Navbar = ({ isAuthenticated = false, onLogout }: NavbarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
@@ -18,131 +21,119 @@ const Navbar = ({ isAuthenticated = false, onLogout }: NavbarProps) => {
   };
 
   const navItems = [
-    { label: 'Main', path: '/' },
+    { label: 'Home', path: '/' },
     { label: 'About', path: '/about' },
+    { label: 'Contact', path: '/contact' },
   ];
 
   return (
-    <nav className="bg-blue-500 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-10">
-          {/* Logo/Brand */}
-          <div className="shrink-0 flex items-center">
-            <h1 className="text-xl font-bold text-indigo-600">Mic-User</h1>
-          </div>
-
+    <nav className="border-b border-slate-200/90 bg-white/95 backdrop-blur-sm">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex min-h-11 items-center justify-between gap-4 py-1">
           {/* Desktop Navigation */}
-          <div className="hidden md:flex md:items-center md:space-x-4">
+          <div className="hidden items-center gap-1 md:flex">
             {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className="text-white hover:text-gray-200 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
-              >
+              <Link key={item.path} to={item.path} className={linkBase}>
                 {item.label}
               </Link>
             ))}
           </div>
 
-          {/* Auth Buttons - Desktop */}
-          <div className="hidden md:flex md:items-center md:space-x-4">
+          {/* Auth — desktop */}
+          <div className="hidden items-center gap-2 md:flex">
             {!isAuthenticated ? (
               <>
                 <Link
                   to="/register"
-                  className="text-white hover:text-gray-200 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                  className="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
                 >
                   Register
                 </Link>
                 <Link
                   to="/login"
-                  className="bg-white text-blue-500 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-100 transition-colors duration-200"
+                  className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
                 >
-                  Login
+                  Sign in
                 </Link>
               </>
             ) : (
-              <>
-                {/* Profile Dropdown */}
-                <div className="relative">
-                  <button
-                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                    className="flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded-md"
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                  className="flex items-center gap-2 rounded-md px-2 py-1.5 text-slate-700 transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                  aria-expanded={isProfileDropdownOpen}
+                  aria-haspopup="menu"
+                >
+                  <UserCount isAuthenticated={isAuthenticated} compact={true} />
+                  <svg
+                    className={`h-4 w-4 shrink-0 text-slate-500 transition-transform ${isProfileDropdownOpen ? 'rotate-180' : ''}`}
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden
                   >
-                    <UserCount isAuthenticated={isAuthenticated} compact={true} />
-                    <svg
-                      className={`h-4 w-4 text-white transition-transform ${isProfileDropdownOpen ? 'rotate-180' : ''}`}
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
+                    <path
+                      fillRule="evenodd"
+                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
 
-                  {/* Dropdown Menu */}
-                  {isProfileDropdownOpen && (
-                    <>
-                      {/* Backdrop to close dropdown when clicking outside */}
-                      <div
-                        className="fixed inset-0 z-10"
+                {isProfileDropdownOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      aria-hidden
+                      onClick={() => setIsProfileDropdownOpen(false)}
+                    />
+                    <div
+                      className="absolute right-0 z-20 mt-1 w-52 overflow-hidden rounded-lg border border-slate-200/80 bg-white py-1 shadow-lg ring-1 ring-slate-900/5"
+                      role="menu"
+                    >
+                      <Link
+                        to="/user-account"
+                        role="menuitem"
                         onClick={() => setIsProfileDropdownOpen(false)}
-                      ></div>
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 border border-gray-200 sm:right-0">
-                        <Link
-                          to="/user-account"
-                          onClick={() => setIsProfileDropdownOpen(false)}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                        >
-                          View Profile
-                        </Link>
-                        <button
-                          onClick={() => {
-                            handleLogout();
-                            setIsProfileDropdownOpen(false);
-                          }}
-                          className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 transition-colors"
-                        >
-                          Logout
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </>
+                        className="block px-4 py-2.5 text-sm text-slate-700 transition-colors hover:bg-slate-50"
+                      >
+                        Account
+                      </Link>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          handleLogout();
+                          setIsProfileDropdownOpen(false);
+                        }}
+                        className="block w-full px-4 py-2.5 text-left text-sm text-red-600 transition-colors hover:bg-red-50"
+                      >
+                        Sign out
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             )}
           </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden">
+          {/* Mobile menu */}
+          <div className="flex w-full items-center justify-end md:hidden">
             <button
+              type="button"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-gray-200 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
-              aria-expanded="false"
+              className="inline-flex items-center justify-center rounded-md p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-nav"
             >
-              <span className="sr-only">Open main menu</span>
+              <span className="sr-only">{isMenuOpen ? 'Close menu' : 'Open menu'}</span>
               {!isMenuOpen ? (
-                <svg
-                  className="block h-6 w-6"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               ) : (
-                <svg
-                  className="block h-6 w-6"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               )}
@@ -151,15 +142,14 @@ const Navbar = ({ isAuthenticated = false, onLogout }: NavbarProps) => {
         </div>
       </div>
 
-      {/* Mobile menu */}
       {isMenuOpen && (
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50">
+        <div id="mobile-nav" className="border-t border-slate-200/90 bg-slate-50/95 md:hidden">
+          <div className="mx-auto max-w-7xl space-y-0.5 px-4 py-3 sm:px-6">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className="text-gray-700 hover:text-indigo-600 block px-3 py-2 rounded-md text-base font-medium"
+                className="block rounded-md px-3 py-2.5 text-base font-medium text-slate-700 hover:bg-white hover:text-indigo-700"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {item.label}
@@ -169,36 +159,37 @@ const Navbar = ({ isAuthenticated = false, onLogout }: NavbarProps) => {
               <>
                 <Link
                   to="/register"
-                  className="text-gray-700 hover:text-indigo-600 block px-3 py-2 rounded-md text-base font-medium"
+                  className="block rounded-md px-3 py-2.5 text-base font-medium text-slate-700 hover:bg-white hover:text-indigo-700"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Register
                 </Link>
                 <Link
                   to="/login"
-                  className="bg-indigo-600 text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-indigo-700"
+                  className="mt-1 block rounded-md bg-indigo-600 px-3 py-2.5 text-center text-base font-semibold text-white hover:bg-indigo-700"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Login
+                  Sign in
                 </Link>
               </>
             ) : (
               <>
                 <Link
                   to="/user-account"
-                  className="text-gray-700 hover:text-indigo-600 block px-3 py-2 rounded-md text-base font-medium"
+                  className="block rounded-md px-3 py-2.5 text-base font-medium text-slate-700 hover:bg-white hover:text-indigo-700"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  View Profile
+                  Account
                 </Link>
                 <button
+                  type="button"
                   onClick={() => {
                     handleLogout();
                     setIsMenuOpen(false);
                   }}
-                  className="bg-red-600 text-white w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-red-700"
+                  className="mt-1 w-full rounded-md border border-red-200 bg-white px-3 py-2.5 text-left text-base font-medium text-red-600 hover:bg-red-50"
                 >
-                  Logout
+                  Sign out
                 </button>
               </>
             )}
@@ -210,4 +201,3 @@ const Navbar = ({ isAuthenticated = false, onLogout }: NavbarProps) => {
 };
 
 export default Navbar;
-
