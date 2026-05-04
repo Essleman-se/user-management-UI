@@ -302,7 +302,7 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
   };
 
   return (
-    <div className="min-h-[calc(100dvh-2.5rem)] bg-gray-50 py-2 px-3 flex flex-col justify-center">
+    <div className="w-full bg-gray-50 px-3 pt-2 pb-2 flex flex-col justify-start sm:pt-4 sm:pb-4">
       <div className="max-w-sm mx-auto w-full">
         <div className="bg-white rounded-lg shadow-md border border-gray-200/80 p-3">
           <h1 className="text-xl font-bold text-gray-900 mb-2 text-center">

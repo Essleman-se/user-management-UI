@@ -61,7 +61,7 @@ const Navbar = ({ isAuthenticated = false, onLogout }: NavbarProps) => {
                 <button
                   type="button"
                   onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                  className="flex items-center gap-2 rounded-md px-2 py-1.5 text-slate-700 transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                  className="flex items-center gap-2 rounded-md border border-slate-200/80 bg-slate-100/90 px-2 py-1.5 text-slate-700 shadow-sm transition-colors hover:bg-slate-200/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
                   aria-expanded={isProfileDropdownOpen}
                   aria-haspopup="menu"
                 >
